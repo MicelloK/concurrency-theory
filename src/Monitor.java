@@ -12,7 +12,7 @@ public class Monitor {
 
         buff = 1;
         System.out.println("Produced!");
-        notify();
+        notifyAll();
     }
 
     public synchronized void consume() {
@@ -26,7 +26,7 @@ public class Monitor {
 
         buff = 0;
         System.out.println("Consumed!");
-        notify();
+        notifyAll();
     }
 
     public int getBuff() {
