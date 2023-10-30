@@ -11,6 +11,7 @@ public class Monitor {
         }
 
         buff = 1;
+        System.out.println("Produced!");
         notify();
     }
 
@@ -24,6 +25,11 @@ public class Monitor {
         }
 
         buff = 0;
+        System.out.println("Consumed!");
         notify();
+    }
+
+    public int getBuff() {
+        return buff;
     }
 }

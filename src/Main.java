@@ -1,13 +1,30 @@
+import java.util.LinkedList;
+
 public class Main {
     public static void main(String[] args) throws InterruptedException {
         Monitor monitor = new Monitor();
-        Producer producer = new Producer(monitor);
-        Consumer consumer = new Consumer(monitor);
+        LinkedList<Thread> threads = new LinkedList<>();
 
-        producer.start();
-        consumer.start();
+        int m = 2;
+        int n = 1;
 
-        producer.join();
-        consumer.join();
+        for (int i = 0; i < m; i++) {
+            threads.add(new Producer(i + 1, monitor));
+        }
+
+        for (int i = 0; i < n; i++) {
+            threads.add(new Consumer(m + i + 1, monitor));
+        }
+
+        for (Thread thread : threads) {
+            thread.start();
+        }
+        for (Thread thread : threads) {
+            thread.join();
+        }
+
+
+
+
     }
 }
