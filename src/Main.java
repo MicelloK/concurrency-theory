@@ -1,17 +1,32 @@
-// Press Shift twice to open the Search Everywhere dialog and type `show whitespaces`,
-// then press Enter. You can now see whitespace characters in your code.
+import java.util.LinkedList;
+
 public class Main {
-    public static void main(String[] args) {
-        // Press Alt+Enter with your caret at the highlighted text to see how
-        // IntelliJ IDEA suggests fixing it.
-        System.out.printf("Hello and welcome!");
+    public static void main(String[] args) throws InterruptedException {
+        int m = 2;
+        int n = 1;
+        int w = 8;
+        int max_portion = 5; // jeśli max_portion będzie większy niż połowa buffora, wystąpi zakleszczenie
 
-        // Press Shift+F10 or click the green arrow button in the gutter to run the code.
-        for (int i = 1; i <= 5; i++) {
+        Monitor monitor = new Monitor(w, max_portion);
+        LinkedList<Thread> threads = new LinkedList<>();
 
-            // Press Shift+F9 to start debugging your code. We have set one breakpoint
-            // for you, but you can always add more by pressing Ctrl+F8.
-            System.out.println("i = " + i);
+        for (int i = 0; i < m; i++) {
+            threads.add(new Producer(i + 1, monitor));
         }
+
+        for (int i = 0; i < n; i++) {
+            threads.add(new Consumer(m + i + 1, monitor));
+        }
+
+        for (Thread thread : threads) {
+            thread.start();
+        }
+        for (Thread thread : threads) {
+            thread.join();
+        }
+
+
+
+
     }
 }
