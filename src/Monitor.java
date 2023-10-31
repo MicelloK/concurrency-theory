@@ -1,8 +1,16 @@
 public class Monitor {
     private int buff = 0;
+    private final int maxPortion;
+    private final int buffLimit;
 
-    public synchronized void produce() {
-        while (buff == 1) {
+    public Monitor(int buffLimit, int maxPortion) {
+        this.buffLimit = buffLimit;
+        this.maxPortion = maxPortion;
+    }
+
+    public synchronized void produce(int portion, int threadId) {
+        while (buff + portion > buffLimit) {
+            System.out.println("Thread id: " + threadId + " (producer) buff = " + buff + " portion = " + portion + " | wait()");
             try {
                 wait();
             } catch (InterruptedException e) {
@@ -10,13 +18,14 @@ public class Monitor {
             }
         }
 
-        buff = 1;
-        System.out.println("Produced!");
+        System.out.println("Thread id: " + threadId + " (producer) buff = " + buff + " portion = " + portion + " | produce");
+        buff += portion;
         notifyAll();
     }
 
-    public synchronized void consume() {
-        while (buff == 0) {
+    public synchronized void consume(int portion, int threadId) {
+        while (buff - portion < 0) {
+            System.out.println("Thread id: " + threadId + " (consumer) buff = " + buff + " portion = " + portion + " | wait()");
             try {
                 wait();
             } catch (InterruptedException e) {
@@ -24,12 +33,12 @@ public class Monitor {
             }
         }
 
-        buff = 0;
-        System.out.println("Consumed!");
+        System.out.println("Thread id: " + threadId + " (consumer) buff = " + buff + " portion = " + portion + " | consume");
+        buff -= portion;
         notifyAll();
     }
 
-    public int getBuff() {
-        return buff;
+    public int getMaxPortion() {
+        return maxPortion;
     }
 }

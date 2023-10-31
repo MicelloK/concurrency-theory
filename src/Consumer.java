@@ -1,6 +1,9 @@
+import java.util.Random;
+
 public class Consumer extends Thread {
     private final int id;
     private final Monitor monitor;
+    private final Random random = new Random();
 
     public Consumer(int id, Monitor monitor) {
         this.id = id;
@@ -9,8 +12,8 @@ public class Consumer extends Thread {
 
     public void run() {
         while (true) {
-            System.out.println("Thread id: " + id + " buff = " + monitor.getBuff());
-            monitor.consume();
+            int randPortion = random.nextInt(monitor.getMaxPortion()) + 1;
+            monitor.consume(randPortion, id);
         }
     }
 }
