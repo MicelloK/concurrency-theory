@@ -12,8 +12,7 @@ public class Consumer extends Thread {
 
     public void run() {
         while (true) {
-            int randPortion = random.nextInt(monitor.getMaxPortion()) + 1;
-            monitor.consume(randPortion, id);
+            monitor.consume(1, id);
         }
     }
 }
