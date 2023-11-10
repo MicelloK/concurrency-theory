@@ -2,7 +2,7 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class Monitor {
-    private int buff = 0;
+    private int buff = 50;
     private final int maxPortion;
     private final int buffLimit;
     private final ReentrantLock lock = new ReentrantLock();
@@ -17,7 +17,7 @@ public class Monitor {
     public void produce(int portion, int threadId) {
         lock.lock();
         while (buff + portion > buffLimit) {
-            System.out.println("Thread id: " + threadId + " (producer) buff = " + buff + " portion = " + portion + " | wait()");
+            if(threadId == 1000) System.out.println("Thread id: " + threadId + " (producer) buff = " + buff + " portion = " + portion + " | wait()");
             try {
                 bufferFullCondition.await();
             } catch (InterruptedException e) {
@@ -25,7 +25,7 @@ public class Monitor {
             }
         }
 
-        System.out.println("Thread id: " + threadId + " (producer) buff = " + buff + " portion = " + portion + " | produce");
+        if(threadId == 1000) System.out.println("Thread id: " + threadId + " (producer) buff = " + buff + " portion = " + portion + " | produce");
         buff += portion;
         bufferReadyCondition.signal();
         lock.unlock();
@@ -34,7 +34,6 @@ public class Monitor {
     public void consume(int portion, int threadId) {
         lock.lock();
         while (buff - portion < 0) {
-            System.out.println("Thread id: " + threadId + " (consumer) buff = " + buff + " portion = " + portion + " | wait()");
             try {
                 bufferReadyCondition.await();
             } catch (InterruptedException e) {
@@ -42,7 +41,6 @@ public class Monitor {
             }
         }
 
-        System.out.println("Thread id: " + threadId + " (consumer) buff = " + buff + " portion = " + portion + " | consume");
         buff -= portion;
         bufferFullCondition.signal();
         lock.unlock();
@@ -50,5 +48,9 @@ public class Monitor {
 
     public int getMaxPortion() {
         return maxPortion;
+    }
+
+    public int getBuffLimit() {
+        return buffLimit;
     }
 }
