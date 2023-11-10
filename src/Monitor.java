@@ -28,6 +28,7 @@ public class Monitor {
         System.out.println("Thread id: " + threadId + " (producer) buff = " + buff + " portion = " + portion + " | produce");
         buff += portion;
         bufferReadyCondition.signal();
+        lock.unlock();
     }
 
     public void consume(int portion, int threadId) {
@@ -44,6 +45,7 @@ public class Monitor {
         System.out.println("Thread id: " + threadId + " (consumer) buff = " + buff + " portion = " + portion + " | consume");
         buff -= portion;
         bufferFullCondition.signal();
+        lock.unlock();
     }
 
     public int getMaxPortion() {
