@@ -5,7 +5,7 @@ public class Main {
         int m = 400;
         int n = 400;
         int w = 100;
-        int max_portion = 10; // jeśli max_portion będzie większy niż połowa buffora, wystąpi zakleszczenie
+        int max_portion = 5; // jeśli max_portion będzie większy niż połowa buffora, wystąpi zakleszczenie
 
         Monitor monitor = new Monitor(w, max_portion);
         LinkedList<Thread> threads = new LinkedList<>();

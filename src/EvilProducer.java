@@ -11,7 +11,7 @@ public class EvilProducer extends Thread {
 
     public void run() {
         while (true) {
-            monitor.produce(monitor.getBuffLimit()-1, id);
+            monitor.produce(50, id);
         }
     }
 }

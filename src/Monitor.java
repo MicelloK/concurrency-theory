@@ -2,12 +2,16 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class Monitor {
-    private int buff = 50;
+    private int buff = 30;
     private final int maxPortion;
     private final int buffLimit;
     private final ReentrantLock lock = new ReentrantLock();
-    private final Condition bufferReadyCondition = lock.newCondition();
-    private final Condition bufferFullCondition = lock.newCondition();
+    private final Condition firstProducerCondition = lock.newCondition();
+    private final Condition restProducersCondition = lock.newCondition();
+    private final Condition firstConsumerCondition = lock.newCondition();
+    private final Condition restConsumersCondition = lock.newCondition();
+    private boolean firstProducer = false;
+    private boolean firstConsumer = false;
 
     public Monitor(int buffLimit, int maxPortion) {
         this.buffLimit = buffLimit;
@@ -16,33 +20,56 @@ public class Monitor {
 
     public void produce(int portion, int threadId) {
         lock.lock();
-        while (buff + portion > buffLimit) {
+        while (firstProducer) {
             if(threadId == 1000) System.out.println("Thread id: " + threadId + " (producer) buff = " + buff + " portion = " + portion + " | wait()");
             try {
-                bufferFullCondition.await();
+                restProducersCondition.await();
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        while (buff + portion > buffLimit) {
+            if(threadId == 1000) System.out.println("Thread id: " + threadId + " (producer) buff = " + buff + " portion = " + portion + " | firstProducer wait()");
+            try {
+                firstProducer = true;
+                firstProducerCondition.await();
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
         }
 
+
         if(threadId == 1000) System.out.println("Thread id: " + threadId + " (producer) buff = " + buff + " portion = " + portion + " | produce");
         buff += portion;
-        bufferReadyCondition.signal();
+        firstProducer = false;
+        restProducersCondition.signal();
+        firstConsumerCondition.signal();
         lock.unlock();
     }
 
     public void consume(int portion, int threadId) {
         lock.lock();
+        while (firstConsumer) {
+            try {
+                restConsumersCondition.await();
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
         while (buff - portion < 0) {
             try {
-                bufferReadyCondition.await();
+                firstConsumer = true;
+                firstConsumerCondition.await();
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
         }
 
         buff -= portion;
-        bufferFullCondition.signal();
+//        System.out.println("consumed!");
+        firstConsumer = false;
+        restConsumersCondition.signal();
+        firstProducerCondition.signal();
         lock.unlock();
     }
 
