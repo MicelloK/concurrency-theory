@@ -81,3 +81,5 @@ public class Monitor {
         return buffLimit;
     }
 }
+
+// haswatiers nie interesuje nas czy ktoś jest na await (obserwujemy coś innego) w tym czasie inne wątki mogą wchodzić
