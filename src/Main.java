@@ -2,8 +2,8 @@ import java.util.LinkedList;
 
 public class Main {
     public static void main(String[] args) throws InterruptedException {
-        int m = 400;
-        int n = 400;
+        int m = 4;
+        int n = 4;
         int w = 100;
         int max_portion = 5; // jeśli max_portion będzie większy niż połowa buffora, wystąpi zakleszczenie
 
