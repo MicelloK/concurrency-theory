@@ -10,8 +10,6 @@ public class Monitor {
     private final Condition restProducersCondition = lock.newCondition();
     private final Condition firstConsumerCondition = lock.newCondition();
     private final Condition restConsumersCondition = lock.newCondition();
-    private boolean firstProducer = false;
-    private boolean firstConsumer = false;
 
     public Monitor(int buffLimit, int maxPortion) {
         this.buffLimit = buffLimit;
@@ -20,7 +18,7 @@ public class Monitor {
 
     public void produce(int portion, int threadId) {
         lock.lock();
-        while (firstProducer) {
+        while (lock.hasWaiters(restProducersCondition)) {
             if(threadId == 1000) System.out.println("Thread id: " + threadId + " (producer) buff = " + buff + " portion = " + portion + " | wait()");
             try {
                 restProducersCondition.await();
@@ -31,7 +29,6 @@ public class Monitor {
         while (buff + portion > buffLimit) {
             if(threadId == 1000) System.out.println("Thread id: " + threadId + " (producer) buff = " + buff + " portion = " + portion + " | firstProducer wait()");
             try {
-                firstProducer = true;
                 firstProducerCondition.await();
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
@@ -41,7 +38,6 @@ public class Monitor {
 
         if(threadId == 1000) System.out.println("Thread id: " + threadId + " (producer) buff = " + buff + " portion = " + portion + " | produce");
         buff += portion;
-        firstProducer = false;
         restProducersCondition.signal();
         firstConsumerCondition.signal();
         lock.unlock();
@@ -49,7 +45,7 @@ public class Monitor {
 
     public void consume(int portion, int threadId) {
         lock.lock();
-        while (firstConsumer) {
+        while (lock.hasWaiters(restConsumersCondition)) {
             try {
                 restConsumersCondition.await();
             } catch (InterruptedException e) {
@@ -58,7 +54,6 @@ public class Monitor {
         }
         while (buff - portion < 0) {
             try {
-                firstConsumer = true;
                 firstConsumerCondition.await();
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
@@ -67,7 +62,6 @@ public class Monitor {
 
         buff -= portion;
 //        System.out.println("consumed!");
-        firstConsumer = false;
         restConsumersCondition.signal();
         firstProducerCondition.signal();
         lock.unlock();
