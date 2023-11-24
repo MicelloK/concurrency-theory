@@ -6,10 +6,9 @@ public class Monitor {
     private final int maxPortion;
     private final int buffLimit;
     private final ReentrantLock lock = new ReentrantLock();
-    private final Condition firstProducerCondition = lock.newCondition();
-    private final Condition restProducersCondition = lock.newCondition();
-    private final Condition firstConsumerCondition = lock.newCondition();
-    private final Condition restConsumersCondition = lock.newCondition();
+    private final ReentrantLock prodLock = new ReentrantLock();
+    private final ReentrantLock consLock = new ReentrantLock();
+    private final Condition atWork = lock.newCondition();
 
     public Monitor(int buffLimit, int maxPortion) {
         this.buffLimit = buffLimit;
@@ -17,19 +16,13 @@ public class Monitor {
     }
 
     public void produce(int portion, int threadId) {
+        prodLock.lock();
         lock.lock();
-        while (lock.hasWaiters(restProducersCondition)) {
-            if(threadId == 1000) System.out.println("Thread id: " + threadId + " (producer) buff = " + buff + " portion = " + portion + " | wait()");
+
+        while(buff + portion > buffLimit) {
+            System.out.println("Thread id: " + threadId + " (producer) buff = " + buff + " portion = " + portion + " | await()");
             try {
-                restProducersCondition.await();
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-        }
-        while (buff + portion > buffLimit) {
-            if(threadId == 1000) System.out.println("Thread id: " + threadId + " (producer) buff = " + buff + " portion = " + portion + " | firstProducer wait()");
-            try {
-                firstProducerCondition.await();
+                atWork.await();
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
@@ -38,33 +31,30 @@ public class Monitor {
 
         if(threadId == 1000) System.out.println("Thread id: " + threadId + " (producer) buff = " + buff + " portion = " + portion + " | produce");
         buff += portion;
-        restProducersCondition.signal();
-        firstConsumerCondition.signal();
+        atWork.signal();
+
         lock.unlock();
+        prodLock.unlock();
     }
 
     public void consume(int portion, int threadId) {
+        consLock.lock();
         lock.lock();
-        while (lock.hasWaiters(restConsumersCondition)) {
+
+        while(buff - portion < 0) {
+            System.out.println("Thread id: " + threadId + " (consumer) buff = " + buff + " portion = " + portion + " | await()");
             try {
-                restConsumersCondition.await();
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-        }
-        while (buff - portion < 0) {
-            try {
-                firstConsumerCondition.await();
+                atWork.await();
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
         }
 
         buff -= portion;
-//        System.out.println("consumed!");
-        restConsumersCondition.signal();
-        firstProducerCondition.signal();
+        atWork.signal();
+
         lock.unlock();
+        consLock.unlock();
     }
 
     public int getMaxPortion() {
@@ -75,5 +65,3 @@ public class Monitor {
         return buffLimit;
     }
 }
-
-// haswatiers nie interesuje nas czy ktoś jest na await (obserwujemy coś innego) w tym czasie inne wątki mogą wchodzić
