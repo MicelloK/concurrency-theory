@@ -3,8 +3,8 @@ import java.util.LinkedList;
 public class Main {
     public static void main(String[] args) throws InterruptedException {
         int m = 2;
-        int n = 1;
-        int w = 8;
+        int n = 2;
+        int w = 100;
         int max_portion = 5; // jeśli max_portion będzie większy niż połowa buffora, wystąpi zakleszczenie
 
         Monitor monitor = new Monitor(w, max_portion);
@@ -17,6 +17,8 @@ public class Main {
         for (int i = 0; i < n; i++) {
             threads.add(new Consumer(m + i + 1, monitor));
         }
+
+        threads.add(new EvilProducer(1000, monitor));
 
         for (Thread thread : threads) {
             thread.start();

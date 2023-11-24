@@ -12,7 +12,7 @@ public class Producer extends Thread {
 
     public void run() {
         while (true) {
-            int randPortion = random.nextInt(monitor.getMaxPortion()) + 1;
+            int randPortion = random.nextInt(monitor.getMaxPortion());
             monitor.produce(randPortion, id);
         }
     }
