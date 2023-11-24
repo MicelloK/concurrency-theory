@@ -28,7 +28,8 @@ public class Monitor {
             }
         }
 
-        System.out.println("Thread id: " + threadId + " (producer) buff = " + buff + " portion = " + portion + " | produce");
+
+        if(threadId == 1000) System.out.println("Thread id: " + threadId + " (producer) buff = " + buff + " portion = " + portion + " | produce");
         buff += portion;
         atWork.signal();
 
@@ -49,7 +50,6 @@ public class Monitor {
             }
         }
 
-        System.out.println("Thread id: " + threadId + " (consumer) buff = " + buff + " portion = " + portion + " | consume");
         buff -= portion;
         atWork.signal();
 
