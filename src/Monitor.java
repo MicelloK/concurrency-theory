@@ -1,3 +1,5 @@
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -9,6 +11,8 @@ public class Monitor {
     private final ReentrantLock prodLock = new ReentrantLock();
     private final ReentrantLock consLock = new ReentrantLock();
     private final Condition atWork = lock.newCondition();
+    private final Map<Integer, Long> threadsLockTimes = new HashMap<>();
+    private final Map<Integer, Long> threadsCPUTimes = new HashMap<>();
 
     public Monitor(int buffLimit, int maxPortion) {
         this.buffLimit = buffLimit;
@@ -18,9 +22,10 @@ public class Monitor {
     public void produce(int portion, int threadId) {
         prodLock.lock();
         lock.lock();
+        long startTime = System.currentTimeMillis();
 
         while(buff + portion > buffLimit) {
-            System.out.println("Thread id: " + threadId + " (producer) buff = " + buff + " portion = " + portion + " | await()");
+//            System.out.println("Thread id: " + threadId + " (producer) buff = " + buff + " portion = " + portion + " | await()");
             try {
                 atWork.await();
             } catch (InterruptedException e) {
@@ -28,11 +33,18 @@ public class Monitor {
             }
         }
 
+        long startCpuTime = System.currentTimeMillis();
 
-        if(threadId == 1000) System.out.println("Thread id: " + threadId + " (producer) buff = " + buff + " portion = " + portion + " | produce");
+//        if(threadId == 1000) System.out.println("Thread id: " + threadId + " (producer) buff = " + buff + " portion = " + portion + " | produce");
         buff += portion;
         atWork.signal();
 
+        long endTime = System.currentTimeMillis();
+
+        long lockTime = endTime - startTime;
+        long cpuTime = endTime - startCpuTime;
+        threadsLockTimes.merge(threadId, lockTime, Long::sum);
+        threadsCPUTimes.merge(threadId, cpuTime, Long::sum);
         lock.unlock();
         prodLock.unlock();
     }
@@ -42,7 +54,7 @@ public class Monitor {
         lock.lock();
 
         while(buff - portion < 0) {
-            System.out.println("Thread id: " + threadId + " (consumer) buff = " + buff + " portion = " + portion + " | await()");
+//            System.out.println("Thread id: " + threadId + " (consumer) buff = " + buff + " portion = " + portion + " | await()");
             try {
                 atWork.await();
             } catch (InterruptedException e) {
@@ -61,7 +73,11 @@ public class Monitor {
         return maxPortion;
     }
 
-    public int getBuffLimit() {
-        return buffLimit;
+    public Map<Integer, Long> getThreadsLockTimes() {
+        return threadsLockTimes;
+    }
+
+    public Map<Integer, Long> getThreadsCPUTimes() {
+        return threadsCPUTimes;
     }
 }
